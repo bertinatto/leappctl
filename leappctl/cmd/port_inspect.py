@@ -1,5 +1,7 @@
 import click
 import json
+
+from leappctl.cmd import debug_param, target_params
 from leappctl.session import post
 
 
@@ -8,12 +10,7 @@ CMD_HELP = "This command scans ports on a target system"
 
 
 @click.command(CMD, help=CMD_HELP)
-@click.option('--target-host',
-              '-t',
-              required=True,
-              prompt=True,
-              default='localhost',
-              help='Hostname of a target system')
+@target_params
 @click.option('--port-range',
               '-r',
               required=True,
@@ -24,6 +21,7 @@ CMD_HELP = "This command scans ports on a target system"
               is_flag=True,
               default=False,
               help='Should execute a shallow scan')
+@debug_param
 def cli(**kwargs):
     req_body = kwargs
 

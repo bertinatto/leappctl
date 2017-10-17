@@ -1,5 +1,8 @@
-import click
 import json
+
+import click
+
+from leappctl.cmd import debug_param, target_params
 from leappctl.session import post
 
 
@@ -8,21 +11,13 @@ CMD_HELP = "This command checks services (like Docker, Rsync) on a target system
 
 
 @click.command(CMD, help=CMD_HELP)
-@click.option('--target-host',
-              '-t',
-              required=True,
-              prompt=True,
-              default='localhost',
-              help='Host where checks will be executed.')
-@click.option('--target-user-name',
-              '-u',
-              default='root',
-              help='User in target host to connect via SSH.')
+@target_params
 @click.option('--check-target-service-status',
               '-s',
               is_flag=True,
               default=False,
               help='Check status of services')
+@debug_param
 def cli(**kwargs):
     req_body = kwargs
 

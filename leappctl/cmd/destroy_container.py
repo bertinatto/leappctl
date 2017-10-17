@@ -1,5 +1,8 @@
-import click
 import json
+
+import click
+
+from leappctl.cmd import container_name_param, debug_param, target_params
 from leappctl.session import post
 
 
@@ -8,21 +11,9 @@ CMD_HELP = "This command destroy a container by name on a target system"
 
 
 @click.command(CMD, help=CMD_HELP)
-@click.option('--container-name',
-              '-n',
-              required=True,
-              prompt=True,
-              help='Name of a container that will be destroyed')
-@click.option('--target-host',
-              '-t',
-              required=True,
-              prompt=True,
-              default='localhost',
-              help='Hostname of the remote system')
-@click.option('--target-user',
-              '-u',
-              default='root',
-              help='Username for the remote system')
+@target_params
+@container_name_param
+@debug_param
 def cli(**kwargs):
     req_body = kwargs
 
