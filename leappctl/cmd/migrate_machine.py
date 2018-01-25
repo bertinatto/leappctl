@@ -2,8 +2,9 @@ import json
 
 import click
 
+from leappctl.cmd import container_name_param, debug_param, source_params, target_params, tcp_ports_map_params
 from leappctl.session import post
-from leappctl.utils import to_port_spec, to_port_map
+from leappctl.utils import to_port_map
 
 
 CMD = "migrate-machine"
@@ -16,29 +17,10 @@ This means that the entire system will be converted into a container, possibly b
 
 
 @click.command(CMD, help=CMD_LONG_HELP, short_help=CMD_SHORT_HELP)
-@click.option('--source-host',
-              '-s',
-              required=True,
-              prompt=True,
-              help='Host to be migrated into a macrocontainer.')
-@click.option('--source-user',
-              '-u',
-              required=True,
-              default='root',
-              help='User in source host to connect via SSH.')
-@click.option('--target-host',
-              '-t',
-              required=True,
-              prompt=True,
-              default='localhost',
-              help='Host in which macrocontainer will run.')
-@click.option('--target-user',
-              '-U',
-              default='root',
-              help='User in target host to connect via SSH.')
-@click.option('--container-name',
-              '-n',
-              help='Container name to be created in the target host.')
+@source_params
+@target_params
+@tcp_ports_map_params
+@container_name_param
 @click.option('--disable-start',
               '-d',
               is_flag=True,
@@ -54,30 +36,15 @@ This means that the entire system will be converted into a container, possibly b
               multiple=True,
               type=click.Path(),
               help='Define paths which will be excluded from the source')
-@click.option('--tcp-port',
-              '-p',
-              default=None,
-              multiple=True,
-              type=to_port_spec,
-              help='(Re)define target tcp ports to forward to macrocontainer - [target_port:source_port]')
-@click.option('--excluded-port',
-              '-e',
-              default=None,
-              multiple=True,
-              type=to_port_spec,
-              help='Define tcp ports which will be excluded from the mapped ports [[target_port]:source_port>]')
-@click.option('--debug',
-              '-D',
-              is_flag=True,
-              default=False,
-              help='Turn on debug logging on stderr')
+@debug_param
 def cli(**kwargs):
     req_body = kwargs
 
     # Transformations
-    req_body['tcp_ports_user_mapping'] = to_port_map(req_body.pop('tcp_port'))
-    req_body['excluded_tcp_ports'] = {"tcp": {str(x[0]): {"name": ""} for x in req_body['excluded_port'] or ()}}
+    req_body['tcp_ports'] = to_port_map(req_body.pop('tcp_ports'))
+    req_body['excluded_tcp_ports'] = {"tcp": {str(x[0]): {"name": ""} for x in req_body['excluded_ports'] or ()}}
     req_body['default_port_map'] = True
+    req_body['start_container'] = not req_body['disable_start']
 
     # POST collected data to the appropriate endpoint in leapp-daemon
     resp = post(CMD, req_body)
